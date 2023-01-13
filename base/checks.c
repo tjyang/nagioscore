@@ -1412,6 +1412,9 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 				log_debug_info(DEBUGL_CHECKS, 1, "Service experienced a HARD recovery.\n");
 
 				send_notification = TRUE;
+				hard_state_change = TRUE;
+
+				svc->current_attempt = 1;
 			}
 			else {
 
@@ -1490,7 +1493,7 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	}
 
 	if (svc->current_attempt >= svc->max_attempts &&
-		(svc->current_state != new_last_hard_state || svc->state_type == SOFT_STATE)) {
+		(svc->current_state != new_last_hard_state || (svc->state_type == SOFT_STATE && svc->current_state != STATE_OK))) {
 
 		log_debug_info(DEBUGL_CHECKS, 2, "Service had a HARD STATE CHANGE!!\n");
         
@@ -1564,6 +1567,14 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		schedule_service_check(svc, svc->next_check, CHECK_OPTION_NONE);
 	}
 
+	if (svc->current_state == STATE_OK && state_change == TRUE) {
+
+		/* Reset problem ID. It's important to have this happen before
+		 * notification-sending logic */
+		svc->last_problem_id = svc->current_problem_id;
+		svc->current_problem_id = 0L;
+	}
+
 	/* volatile service gets everything in non-ok hard state */
 	if ((svc->current_state != STATE_OK) 
 		&& (svc->state_type == HARD_STATE) 
@@ -1610,19 +1621,12 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	}
 
 	if (handle_event == TRUE) {
-
-		log_debug_info(DEBUGL_CHECKS, 0, "IS TIME FOR HANDLE THE SERVICE KTHX");
-		debug_async_service(svc, cr);
 		handle_service_event(svc);
 	}
 
 	/* Update OK states since they send out a soft alert but then they
 	   switch into a HARD state and reset the attempts */
 	if (svc->current_state == STATE_OK && state_change == TRUE) {
-
-		/*  Problem state starts regardless of SOFT/HARD status. */
-		svc->last_problem_id = svc->current_problem_id;
-		svc->current_problem_id = 0L;
 
 		/* Reset attempts */
 		if (hard_state_change == TRUE) {

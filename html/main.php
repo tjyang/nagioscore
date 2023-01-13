@@ -1,8 +1,8 @@
 <?php
 include_once(dirname(__FILE__).'/includes/utils.inc.php');
 
-$this_version = '4.4.5';
-$this_year = '2019';
+$this_version = '4.4.9';
+$this_year = '2022';
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 
@@ -145,7 +145,7 @@ $this_year = '2019';
 <div id="currentversioninfo">
 	<div class="product">Nagios<sup><span style="font-size: small;">&reg;</span></sup> Core<sup><span style="font-size: small;">&trade;</span></sup></div>
 	<div class="version">Version <?php echo $this_version; ?></div>
-	<div class="releasedate">August 20, 2019</div>
+	<div class="releasedate">November 16, 2022</div>
 	<div class="checkforupdates"><a href="https://www.nagios.org/checkforupdates/?version=<?php echo $this_version; ?>&amp;product=nagioscore" target="_blank">Check for updates</a></div>
 </div>
 
@@ -166,7 +166,7 @@ $this_year = '2019';
 ?>
 		<div class="updateavailable">
 			<div class="updatemessage">A new version of Nagios Core is available!</div>
-			<div class="submessage">Visit <a href="https://www.nagios.org/download/" target="_blank">nagios.org</a> to download Nagios <?php echo $updateinfo['update_version'];?>.</div>
+			<div class="submessage">Visit <a href="https://www.nagios.org/download/" target="_blank">nagios.org</a> to download Nagios <?php echo htmlentities($updateinfo['update_version'], ENT_QUOTES, 'UTF-8');?>.</div>
 		</div>
 <?php
 	}
@@ -198,6 +198,10 @@ $this_year = '2019';
 			</ul>
 		</div>
 
+
+		<div id="splashbox3" class="splashbox3-empty"><!-- youtube playlist -->
+		</div>
+
 		<div id="splashbox2" class="splashbox">
 			<h2>Quick Links</h2>
 			<ul>
@@ -210,8 +214,7 @@ $this_year = '2019';
 			</ul>
 		</div>
 
-		<div id="splashbox3" class="splashbox3-empty"><!-- youtube playlist -->
-		</div>
+	
 
 	</div><!-- end splashrow1 -->
 
