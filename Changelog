@@ -2,17 +2,114 @@
 Nagios Core 4 Change Log
 ########################
 
+4.5.10 - 2025-XX-XX
+-------------------
+* Update quickstart and documentations links (Aaron Cieslicki)
+
+4.5.9 - 2024-12-19
+------------------
+* Fix unreachable notifications (Dylan Anderson)
+* Add light option in new exfoliation theme (Dylan Anderson)
+* Fix authentication in trends.cgi (Dylan Anderson)
+
+4.5.8 - 2024-11-19
+------------------
+* Improve new exfoliation theme and add back in PID information (Dylan Anderson)
+* Fix issues with downtimes that are both flexible and triggered and improve downtime additions in general (#595) (Dylan Anderson)
+
+4.5.7 - 2024-10-24
+------------------
+* Expand the custom variable macros to an empty string, if the custom variable does not exist (Andre Klärner)
+* Fix notification logic to not send a notification if a host and services parents are down (#873) (Dylan Anderson)
+* Update Exfoliation theme (Dylan Anderson)
+
+4.5.6 - 2024-10-08
+------------------
+* Send a recovery notification if the object recovered while flapping (#847) (Dylan Anderson)
+* Fix for separate build directory & a couple small cleanups (Doug Nazar)
+* Update tutorial links in Readme (Igor Udot)
+
+4.5.5 - 2024-09-17
+------------------
+* Update configure scripts using newer versions of autotools (Dylan Anderson)
+* Disable maintainer mode for TAP testing and add Github Actions (Dylan Anderson)
+
+4.5.4 - 2024-08-14
+------------------
+* Fix inconsistent links for 'View {Trends,Alert Histogram} For This {Host,Service}' (Mauricio Faria de Oliveira)
+* Fix broken links from removing AngularJS pages in 4.5.3 (Dylan Anderson)
+
+4.5.3 - 2024-06-11 
+------------------
+* Update jQuery (#960) (Dylan Anderson)   
+* Remove pages using outdated AngularJS framework (#960) (Dylan Anderson)
+* Fix html encoding of some ascii characters (#813) (Dylan Anderson)
+* Updated several page links to use 'nofollow' (#965) - (Griffin Westerman)
+
+4.5.2 - 2024-04-30
+------------------
+* Fix handling of timeperiods w/ downtime availability calculations in the Availability CGI report (Sebastian Wolf)
+* Fix build when compiling against musl libc (#952) (Sebastian Wolf)
+* Fix downtime comment using current time instead of the downtime's entry time (#910) (Dylan Anderson)
+
+4.5.1 - 2024-02-28
+-------------------
+* Fix text rendering in Configuration -> Command Expansion when the command ends in whitespace (Thanks Joran LEREEC for reporting this issue) (Dylan Anderson) 
+
+4.5.0 - 2023-11-16
+-------------------
+Note: this release is backward-compatible, but does include updates to the header files.
+If you are using any NEB modules in your monitoring solution, you will need to recompile them with the new nagios-4.5.0 headers to avoid segmentation faults.
+ENHANCEMENTS
+* Add event_handler_period configuration option to hosts and services (#913) (Dylan Anderson)
+* Add external commands CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD and CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD (#913) (Dylan Anderson)
+* Added support for separating your build directory from your source directory (#867) (Doug Nazar)
+
+4.4.14 - 2023-08-01
+-------------------
+* Fix missing macros when running performance data commands (#904) (Doug Nazar)
+
+4.4.13 - 2023-06-01
+-------------------
+FIXES
+* Fix broken logo images in status pages (regression from 4.4.12) (#917) (Harbie34)
+
+4.4.12 - 2023-05-30
+-------------------
+FIXES
+* Clean up most compiler warnings on GCC and clang (#901) (Doug Nazar)
+* Fix incorrect HTML entity escaping in CGIs (#907, #902) (Doug Nazar, Sebastian Wolf)
+* Fix issue where predictive dependency checks were not being scheduled for services (#908) (Sebastian Wolf)
+* Fix several typos (#898, #884) (Harbie34, Josh Soref)
+
+4.4.11 - 2023-04-14
+-------------------
+FIXES
+* Fix incorrect error message in preflight check (#865) (Andre Klärner)
+* Fix use-after-free in qh_deregister_handler (#866) (Doug Nazar)
+* Fix memory leak in qh_deregister_handler (#866) (Doug Nazar)
+* Fix mismatched host/service behavior when changing from SOFT to HARD state (#891) (Sebastian Wolf)
+* Minor performance improvements in CGI utility functions (#866) (Doug Nazar)
+
+4.4.10 - 2023-01-17
+-------------------
+FIXES
+* Fix memory leak in nagiostats.c when using -c, -s, -d, or -D multiple times (#888) (ggvl)
+* Improve service scheduling at startup (#887) (anetyn)
+* Improve compilation/reduce warnings when using Clang 16 (#889) (Sam James)
+* Improve compilation on other, stricter C99 compilers (#890) (Florian Weimer)
+
 4.4.9 - 2022-11-16
 ------------------
 FIXES
-* Fixed check_attempts remaining high during a HARD service recovery (#837)
-* Fixed memory leak in NERD (#872)
+* Fixed check_attempts remaining high during a HARD service recovery (#837) (Sebastian Wolf)
+* Fixed memory leak in NERD (#872) (ggvl)
 
 4.4.8 - 2022-10-04
 ------------------
 FIXES
 * Minor interface updates
-* Fixed crash when checking for updates using SSL
+* Fixed crash when checking for updates using SSL (Doug Nazar)
 
 4.4.7 - 2022-04-14
 ------------------
@@ -133,7 +230,7 @@ ENHANCEMENTS
 * Added system limit detection (RLIMIT_NPROC) to check for anticipated fork() failures (#434) (Bryan Heden)
 * Added stalking on notifications (`N` or `notifications` option when specifying `stalking_options`) (#342) (Bryan Heden)
 * Added automatic `systemctl daemon-reload` and `initctl reload-configuration` where applicable on `make install-init` (Bryan Heden)
-* Added case-insentive command submission. (#373) (Bryan Heden)
+* Added case-insensitive command submission. (#373) (Bryan Heden)
 * Enabled `check_external_commands` by default (Bryan Heden)
 
 FIXES
@@ -145,7 +242,7 @@ FIXES
 * Fixed additive inheritance not testing for duplicates in hosts/services/(+escalations) (#392) (Bryan Heden)
 * Fixed very very (around 600k chars or greater) large plugin output crashing Nagios (#432) (Bryan Heden)
 * Fixed first_notification_delay not beeing calculated from last_hard_state_change (#425) (ccztux)
-* Fixed duplicate downtime ID occuring from downtimes in retention file (#506) (Franz [feisenko])
+* Fixed duplicate downtime ID occurring from downtimes in retention file (#506) (Franz [feisenko])
 * Fixed segfault when navbarsearch was used in status.cgi for something other than a host (#489) (Bryan Heden)
 * Fixed some miscellaneous ./configure issues on Solaris (Bryan Heden, Troy Lea)
 * Fixed "Locate host on map" link (#496) (Troy Lea)
@@ -170,7 +267,7 @@ FIXES
 * New Macro(s) to generate URL for host / service object (John Frickson)
 * Fix minor map issues (Troy Lea)
 * Fix lockfile issues (Bryan Heden)
-* Switch order of daemon_init and drop_priveleges (CVE-2017-12847, Bryan Heden)
+* Switch order of daemon_init and drop_privileges (CVE-2017-12847, Bryan Heden)
 * Add an OpenRC init script (Michael Orlitzky)
 
 
@@ -421,7 +518,7 @@ FIXES
 * Added exclusions for ctags generation (Eric Stanley)
 * Update map-popup.html (Scott Wilkerson)
 * Initial commit of new graphical CGIs (Eric Stanley)
-* Fixed Github bug #18 - archivejson.cgi returns wrong host for state change query (Eric Stanley)
+* Fixed GitHub bug #18 - archivejson.cgi returns wrong host for state change query (Eric Stanley)
 * Status JSON: Added next_check to service details (Eric Stanley)
 * Fixed escaping of keys for scalar values in JSON CGIs (Eric Stanley)
 * build: Include <sys/loadavg.h> if it exists. (Eric J. Mislivec)

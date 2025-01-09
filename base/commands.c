@@ -35,7 +35,6 @@
 extern int sigrestart;
 
 static int command_file_fd;
-static FILE *command_file_fp;
 static int command_file_created = FALSE;
 
 /* The command file worker process */
@@ -117,7 +116,7 @@ int close_command_file(void)
 	command_file_created = FALSE;
 
 	/* close the command file */
-	fclose(command_file_fp);
+	close(command_file_fd);
 
 	/* unlink the pipe */
 	unlink(command_file);
@@ -607,6 +606,10 @@ int process_external_command1(char *cmd) {
 
 	else if(!strcasecmp(command_id, "CHANGE_HOST_EVENT_HANDLER"))
 		command_type = CMD_CHANGE_HOST_EVENT_HANDLER;
+
+	else if(!strcasecmp(command_id, "CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD"))
+		command_type = CMD_CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD;
+
 	else if(!strcasecmp(command_id, "CHANGE_HOST_CHECK_COMMAND"))
 		command_type = CMD_CHANGE_HOST_CHECK_COMMAND;
 
@@ -750,6 +753,10 @@ int process_external_command1(char *cmd) {
 
 	else if(!strcasecmp(command_id, "CHANGE_SVC_EVENT_HANDLER"))
 		command_type = CMD_CHANGE_SVC_EVENT_HANDLER;
+
+	else if(!strcasecmp(command_id, "CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD"))
+		command_type = CMD_CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD;
+
 	else if(!strcasecmp(command_id, "CHANGE_SVC_CHECK_COMMAND"))
 		command_type = CMD_CHANGE_SVC_CHECK_COMMAND;
 
@@ -1297,6 +1304,8 @@ int process_external_command2(int cmd, time_t entry_time, char *args) {
 		case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
 		case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
 		case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
+		case CMD_CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD:
+		case CMD_CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD:
 			ret = cmd_change_object_char_var(cmd, args);
 			break;
 
@@ -3355,6 +3364,7 @@ int cmd_change_object_char_var(int cmd, char *args) {
 		case CMD_CHANGE_HOST_CHECK_COMMAND:
 		case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
 		case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
+		case CMD_CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD:
 
 			/* get the host name */
 			if((host_name = my_strtok(args, ";")) == NULL)
@@ -3373,6 +3383,7 @@ int cmd_change_object_char_var(int cmd, char *args) {
 		case CMD_CHANGE_SVC_CHECK_COMMAND:
 		case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
 		case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
+		case CMD_CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD:
 
 			/* get the host name */
 			if((host_name = my_strtok(args, ";")) == NULL)
@@ -3428,6 +3439,8 @@ int cmd_change_object_char_var(int cmd, char *args) {
 		case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
 		case CMD_CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD:
 		case CMD_CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD:
+		case CMD_CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD:
+		case CMD_CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD:
 
 			/* make sure the timeperiod is valid */
 			if((temp_timeperiod = find_timeperiod(temp_ptr)) == NULL) {
@@ -3488,6 +3501,14 @@ int cmd_change_object_char_var(int cmd, char *args) {
 			temp_host->event_handler_ptr = temp_command;
 			attr = MODATTR_EVENT_HANDLER_COMMAND;
 			break;
+		
+		case CMD_CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD:
+
+			my_free(temp_host->event_handler_period);
+			temp_host->event_handler_period = temp_ptr;
+			temp_host->event_handler_period_ptr = temp_timeperiod;
+			attr = MODATTR_EVENT_HANDLER_TIMEPERIOD;
+			break;
 
 		case CMD_CHANGE_HOST_CHECK_COMMAND:
 
@@ -3519,6 +3540,14 @@ int cmd_change_object_char_var(int cmd, char *args) {
 			temp_service->event_handler = temp_ptr;
 			temp_service->event_handler_ptr = temp_command;
 			attr = MODATTR_EVENT_HANDLER_COMMAND;
+			break;
+
+		case CMD_CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD:
+
+			my_free(temp_service->event_handler_period);
+			temp_service->event_handler_period = temp_ptr;
+			temp_service->event_handler_period_ptr = temp_timeperiod;
+			attr = MODATTR_EVENT_HANDLER_TIMEPERIOD;
 			break;
 
 		case CMD_CHANGE_SVC_CHECK_COMMAND:
@@ -3603,6 +3632,7 @@ int cmd_change_object_char_var(int cmd, char *args) {
 		case CMD_CHANGE_SVC_CHECK_COMMAND:
 		case CMD_CHANGE_SVC_CHECK_TIMEPERIOD:
 		case CMD_CHANGE_SVC_NOTIFICATION_TIMEPERIOD:
+		case CMD_CHANGE_SVC_EVENT_HANDLER_TIMEPERIOD:
 
 			/* set the modified service attribute */
 			temp_service->modified_attributes |= attr;
@@ -3621,6 +3651,7 @@ int cmd_change_object_char_var(int cmd, char *args) {
 		case CMD_CHANGE_HOST_CHECK_COMMAND:
 		case CMD_CHANGE_HOST_CHECK_TIMEPERIOD:
 		case CMD_CHANGE_HOST_NOTIFICATION_TIMEPERIOD:
+		case CMD_CHANGE_HOST_EVENT_HANDLER_TIMEPERIOD:
 
 			/* set the modified host attribute */
 			temp_host->modified_attributes |= attr;
@@ -4279,7 +4310,7 @@ void schedule_and_propagate_downtime(host *temp_host, time_t entry_time, char *a
 void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int type, int notify, int persistent) {
 	time_t current_time = 0L;
 
-	/* cannot acknowledge a non-existent problem */
+	/* cannot acknowledge a nonexistent problem */
 	if(hst->current_state == HOST_UP)
 		return;
 
@@ -4313,7 +4344,7 @@ void acknowledge_host_problem(host *hst, char *ack_author, char *ack_data, int t
 void acknowledge_service_problem(service *svc, char *ack_author, char *ack_data, int type, int notify, int persistent) {
 	time_t current_time = 0L;
 
-	/* cannot acknowledge a non-existent problem */
+	/* cannot acknowledge a nonexistent problem */
 	if(svc->current_state == STATE_OK)
 		return;
 
@@ -4352,7 +4383,7 @@ void remove_host_acknowledgement(host *hst) {
 	/* update the status log with the host info */
 	update_host_status(hst, FALSE);
 
-	/* remove any non-persistant comments associated with the ack */
+	/* remove any non-persistent comments associated with the ack */
 	delete_host_acknowledgement_comments(hst);
 
 	return;
@@ -4368,7 +4399,7 @@ void remove_service_acknowledgement(service *svc) {
 	/* update the status log with the service info */
 	update_service_status(svc, FALSE);
 
-	/* remove any non-persistant comments associated with the ack */
+	/* remove any non-persistent comments associated with the ack */
 	delete_service_acknowledgement_comments(svc);
 
 	return;
@@ -5359,7 +5390,7 @@ void clear_host_flapping_state(host *hst) {
 
 		/* should we send a recovery notification? */
 		if (hst->current_state == HOST_UP && hst->check_flapping_recovery_notification == TRUE) {
-			host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+			host_notification(hst, NOTIFICATION_RECOVERY, NULL, NULL, NOTIFICATION_OPTION_NONE);
 		}
 	}
 
@@ -5416,7 +5447,7 @@ void clear_service_flapping_state(service *svc) {
 
 		/* should we send a recovery notification? */
 		if (svc->current_state == STATE_OK && svc->check_flapping_recovery_notification == TRUE) {
-			service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE);
+			service_notification(svc, NOTIFICATION_RECOVERY, NULL, NULL, NOTIFICATION_OPTION_NONE);
 		}
 	}
 

@@ -3,7 +3,7 @@
 %global bootstrap 0
 
 Name:           nagios
-Version: 4.4.9
+Version: 4.5.9
 Release:        4%{?dist}
 
 Summary: Host/service/network monitoring program
@@ -39,11 +39,11 @@ Patch9: nagios-0009-fix-localstatedir-for-linux.patch
 ## their nagios location.
 Patch10: nagios-0010-remove-information-leak.patch
 ## Make it so it knows about all the arches fedora cares about
-Patch11: nagios-0011-remove-rpmbuild.patch
+# Patch11: nagios-0011-remove-rpmbuild.patch
 Patch12: nagios-0012-fix-spool.patch
 Patch13: nagios-0013-fix-plugin.patch
 Patch14: nagios-0014-fix-uidgid.patch
-Patch15: %{name}-0015-Changelog.patch
+#Patch15: %{name}-0015-Changelog.patch
 
 BuildRequires:  make
 BuildRequires:  doxygen
@@ -757,7 +757,7 @@ fi
 - Perl 5.18 rebuild
 
 * Fri Jul 19 2013 Keiran Smith <fedora@affix.me> - 3.5.0-6
-- implimemt aarch64 patch from bug #926192
+- implement aarch64 patch from bug #926192
 
 * Sat Jun 15 2013 Jose Pedro Oliveira <jpo at di.uminho.pt> - 3.5.0-5
 - Build package with PIE flags (#965529)

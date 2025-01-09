@@ -461,6 +461,7 @@ void display_hosts(void) {
 	printf("<TH CLASS='data'>Notification Options</TH>");
 	printf("<TH CLASS='data'>Notification Period</TH>");
 	printf("<TH CLASS='data'>Event Handler</TH>");
+	printf("<TH CLASS='data'>Event Handler Period</TH>");
 	printf("<TH CLASS='data'>Enable Event Handler</TH>");
 	printf("<TH CLASS='data'>Stalking Options</TH>\n");
 	printf("<TH CLASS='data'>Enable Flap Detection</TH>");
@@ -619,6 +620,13 @@ void display_hosts(void) {
 			else
 				/* printf("<a href='%s?type=commands&expand=%s'>%s</a></TD>\n",CONFIG_CGI,url_encode(strtok(temp_host->event_handler,"!")),html_encode(temp_host->event_handler,FALSE)); */
 				printf("<a href='%s?type=command&expand=%s'>%s</a></TD>\n", CONFIG_CGI, url_encode(temp_host->event_handler), html_encode(temp_host->event_handler, FALSE));
+			printf("</TD>\n");
+
+			printf("<TD CLASS='%s'>", bg_class);
+			if(temp_host->event_handler_period == NULL)
+				printf("&nbsp");
+			else
+				printf("<a href='%s?type=timeperiods&expand=%s'>%s</a>", CONFIG_CGI, url_encode(temp_host->event_handler_period), html_encode(temp_host->event_handler_period, FALSE));
 			printf("</TD>\n");
 
 			printf("<TD CLASS='%s'>", bg_class);
@@ -1202,6 +1210,7 @@ void display_services(void) {
 	printf("<TH CLASS='data'>Notification Options</TH>\n");
 	printf("<TH CLASS='data'>Notification Period</TH>\n");
 	printf("<TH CLASS='data'>Event Handler</TH>");
+	printf("<TH CLASS='data'>Event Handler Period</TH>");
 	printf("<TH CLASS='data'>Enable Event Handler</TH>");
 	printf("<TH CLASS='data'>Stalking Options</TH>\n");
 	printf("<TH CLASS='data'>Enable Flap Detection</TH>");
@@ -1339,18 +1348,27 @@ void display_services(void) {
 			if(!options)
 				printf("None");
 			printf("</TD>\n");
+
 			printf("<TD CLASS='%s'>", bg_class);
 			if(temp_service->notification_period == NULL)
 				printf("&nbsp;");
 			else
 				printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_service->notification_period), html_encode(temp_service->notification_period, FALSE));
 			printf("</TD>\n");
+
 			printf("<TD CLASS='%s'>", bg_class);
 			if(temp_service->event_handler == NULL)
 				printf("&nbsp;");
 			else
 				/* printf("<A HREF='%s?type=commands&expand=%s'>%s</A>",CONFIG_CGI,url_encode(strtok(temp_service->event_handler,"!")),html_encode(temp_service->event_handler,FALSE)); */
 				printf("<A HREF='%s?type=command&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_service->event_handler), html_encode(temp_service->event_handler, FALSE));
+			printf("</TD>\n");
+
+			printf("<TD CLASS='%s'>", bg_class);
+			if(temp_service->event_handler_period == NULL)
+				printf("&nbsp;");
+			else
+				printf("<A HREF='%s?type=timeperiods&expand=%s'>%s</A>", CONFIG_CGI, url_encode(temp_service->event_handler_period), html_encode(temp_service->event_handler_period, FALSE));
 			printf("</TD>\n");
 
 			printf("<TD CLASS='%s'>", bg_class);
@@ -1476,7 +1494,7 @@ void display_timeperiods(void) {
 	int day = 0;
 	int x = 0;
 	const char *bg_class = "";
-	char timestring[10];
+	char timestring[32];
 	int hours = 0;
 	int minutes = 0;
 	int seconds = 0;
@@ -1779,8 +1797,8 @@ void display_servicedependencies(void) {
 		return;
 		}
 
-	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Service Dependencie%s%s</DIV></P>\n",
-	       (*to_expand == '\0' ? "s" : "s Involving Host "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
+	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Service Dependencies%s%s</DIV></P>\n",
+	       (*to_expand == '\0' ? "" : " Involving Host "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
 
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");
@@ -2009,8 +2027,8 @@ void display_hostdependencies(void) {
 		return;
 		}
 
-	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Host Dependencie%s%s</DIV></P>\n",
-	       (*to_expand == '\0' ? "s" : "s Involving Host "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
+	printf("<P><DIV ALIGN=CENTER CLASS='dataTitle'>Host Dependencies%s%s</DIV></P>\n",
+	       (*to_expand == '\0' ? "" : " Involving Host "), (*to_expand == '\0' ? "" : html_encode(to_expand, FALSE)));
 
 	printf("<P>\n");
 	printf("<DIV ALIGN=CENTER>\n");
@@ -2356,7 +2374,14 @@ void display_command_expansion(void) {
 							else if((*c) == '\v')	printf("[VT]");
 							else			printf("[0x%x]", *c);
 						printf("</FONT><FONT COLOR='%s'>", hash_color(i));
-						for(; c && ((*c) != '\0') && (j < (int)strlen(command_args[i]) - trail_space[i]); c++, j++) putchar(*c);
+						// Have to add some internal logic to pass the correct string to html_encode without the trailing whitespace.
+						int temp_command_length = (int)strlen(command_args[i]) - trail_space[i] - j;
+						char temp_commandline[temp_command_length+1];
+						memset(temp_commandline, 0, temp_command_length+1);
+						strncpy(temp_commandline, c, temp_command_length);
+						temp_commandline[temp_command_length] = '\0';
+						c += temp_command_length;
+						printf("%s", html_encode(temp_commandline, FALSE));
 						printf("</FONT><FONT COLOR='#0000FF'>");
 						for(; c && ((*c) != '\0'); c++)
 							/* TODO: As long as the hyperlinks change all whitespace into actual spaces,

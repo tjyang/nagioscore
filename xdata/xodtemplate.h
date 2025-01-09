@@ -226,6 +226,7 @@ typedef struct xodtemplate_host_struct {
     int       passive_checks_enabled;
     int       obsess;
     char      *event_handler;
+    char      *event_handler_period;
     int       event_handler_enabled;
     int       check_freshness;
     int       freshness_threshold;
@@ -268,6 +269,7 @@ typedef struct xodtemplate_host_struct {
     unsigned have_check_command : 1;
     unsigned have_check_period : 1;
     unsigned have_event_handler : 1;
+    unsigned have_event_handler_period : 1;
     unsigned have_notification_period : 1;
     unsigned have_notes : 1;
     unsigned have_notes_url : 1;
@@ -369,6 +371,7 @@ typedef struct xodtemplate_service_struct {
     int        obsess;
     char       *event_handler;
     int        event_handler_enabled;
+    char       *event_handler_period;
     int        check_freshness;
     int        freshness_threshold;
     double     low_flap_threshold;
@@ -407,6 +410,7 @@ typedef struct xodtemplate_service_struct {
     unsigned have_important_check_command : 1;
     unsigned have_check_period : 1;
     unsigned have_event_handler : 1;
+    unsigned have_event_handler_period : 1;
     unsigned have_notification_period : 1;
     unsigned have_notes : 1;
     unsigned have_notes_url : 1;
@@ -744,8 +748,8 @@ typedef struct xodtemplate_service_cursor_struct {
 /********* FUNCTION DEFINITIONS **********/
 
 int xodtemplate_read_config_data(const char *, int);    /* top-level routine processes all config files */
-int xodtemplate_process_config_file(char *, int);           /* process data in a specific config file */
-int xodtemplate_process_config_dir(char *, int);            /* process all files in a specific config directory */
+int xodtemplate_process_config_file(const char *, int);           /* process data in a specific config file */
+int xodtemplate_process_config_dir(const char *, int);            /* process all files in a specific config directory */
 
 int xodtemplate_expand_services(objectlist **, bitmap *, char *, char *, int, int);
 int xodtemplate_expand_contactgroups(objectlist **, bitmap *, char *, int, int);
@@ -828,7 +832,6 @@ int xodtemplate_resolve_hostescalation(xodtemplate_hostescalation *);
 int xodtemplate_resolve_hostextinfo(xodtemplate_hostextinfo *);
 int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *);
 
-int xodtemplate_merge_extinfo_ojects(void);
 int xodtemplate_merge_host_extinfo_object(xodtemplate_host *, xodtemplate_hostextinfo *);
 int xodtemplate_merge_service_extinfo_object(xodtemplate_service *, xodtemplate_serviceextinfo *);
 #endif

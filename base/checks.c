@@ -404,7 +404,7 @@ int get_service_check_return_code(service *svc, check_result *cr)
 		rc = STATE_CRITICAL;
 	}
 
-	/* 127 is a return code for non-existent */
+	/* 127 is a return code for nonexistent */
 	else if (cr->return_code == 127) {
 		
 		my_free(svc->plugin_output);
@@ -495,7 +495,7 @@ int get_host_check_return_code(host *hst, check_result *cr)
 		rc = HOST_UNREACHABLE;
 	}
 
-	/* 127 is a return code for non-existent */
+	/* 127 is a return code for nonexistent */
 	else if (cr->return_code == 127) {
 
 		my_free(hst->plugin_output);
@@ -922,7 +922,7 @@ static inline void service_state_or_hard_state_type_change(service * svc, int st
 		if ((svc->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL && (state_change == TRUE || hard_state_change == FALSE))
 			|| (svc->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && svc->current_state == STATE_OK)) {
 
-			/* remove any non-persistant comments associated with the ack */
+			/* remove any non-persistent comments associated with the ack */
 			svc->problem_has_been_acknowledged = FALSE;
 			svc->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
 			delete_service_acknowledgement_comments(svc);
@@ -983,6 +983,7 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 	if (hard_state_change == TRUE) {
 
 		hst->last_hard_state_change = hst->last_check;
+		hst->last_state_change = hst->last_check;
 		hst->last_hard_state = hst->current_state;
 		hst->state_type = HARD_STATE;
 
@@ -1007,7 +1008,7 @@ static inline void host_state_or_hard_state_type_change(host * hst, int state_ch
 		if ((hst->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL && (state_change == TRUE || hard_state_change == FALSE))
 			|| (hst->acknowledgement_type == ACKNOWLEDGEMENT_STICKY && hst->current_state == STATE_OK)) {
 
-			/* remove any non-persistant comments associated with the ack */
+			/* remove any non-persistent comments associated with the ack */
 			hst->problem_has_been_acknowledged = FALSE;
 			hst->acknowledgement_type = ACKNOWLEDGEMENT_NONE;
 			delete_host_acknowledgement_comments(hst);
@@ -1063,8 +1064,8 @@ static inline void host_propagate_checks_to_immediate_parents(host * hst, int pa
 	log_debug_info(DEBUGL_CHECKS, 1, "Propagating checks to parent host(s)...\n");
 	for(temp_hostsmember = hst->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
 		parent_host = temp_hostsmember->host_ptr;
-		if ((parent_host_up == TRUE  && parent_host->current_state == HOST_UP) 
-			|| ((parent_host_up == FALSE && parent_host->current_state != HOST_UP))) {
+		if ((parent_host_up == TRUE  && parent_host->current_state != HOST_UP) 
+			|| ((parent_host_up == FALSE && parent_host->current_state == HOST_UP))) {
 
 			log_debug_info(DEBUGL_CHECKS, 1, "Check of parent host '%s' queued.\n", parent_host->name);
 			schedule_host_check(parent_host, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
@@ -1091,6 +1092,43 @@ static inline void host_propagate_checks_to_immediate_children(host * hst, int c
 /******************************************************************************
  ******* Logic chunks propagating dependency checks
  *****************************************************************************/
+static inline void host_propagate_dependency_checks(host * hst, time_t current_time)
+{
+	/* we do to help ensure that the dependency checks are accurate before it comes time to notify */
+	if (hst->current_attempt == (hst->max_attempts - 1) 
+		&& execute_host_checks == TRUE
+		&& enable_predictive_host_dependency_checks == TRUE) {
+
+		objectlist *list;
+		hostdependency *dep = NULL;
+		host *master_host = NULL;
+		
+		log_debug_info(DEBUGL_CHECKS, 1, "Propagating predictive dependency checks to hosts this one depends on...\n");
+
+		for(list = hst->notify_deps; list; list = list->next) {
+			dep = (hostdependency *)list->object_ptr;
+			if (dep->dependent_host_ptr == hst && dep->master_host_ptr != NULL) {
+
+				master_host = (host *)dep->master_host_ptr;
+
+				log_debug_info(DEBUGL_CHECKS, 1, "Check of host '%s' queued.\n", master_host->name);
+				schedule_host_check(master_host, current_time, CHECK_OPTION_NONE);
+			}
+		}
+
+		for(list = hst->exec_deps; list; list = list->next) {
+			dep = (hostdependency *)list->object_ptr;
+			if (dep->dependent_host_ptr == hst && dep->master_host_ptr != NULL) {
+
+				master_host = (host *)dep->master_host_ptr;
+
+				log_debug_info(DEBUGL_CHECKS, 1, "Check of host '%s' queued.\n", master_host->name);
+				schedule_host_check(master_host, current_time, CHECK_OPTION_NONE);
+			}
+		}
+	}
+}
+
 static inline void service_propagate_dependency_checks(service * svc, time_t current_time)
 {
 	if (svc->current_attempt == (svc->max_attempts - 1) 
@@ -1124,43 +1162,6 @@ static inline void service_propagate_dependency_checks(service * svc, time_t cur
 
 				log_debug_info(DEBUGL_CHECKS, 2, "Predictive check of service '%s' on host '%s' queued.\n", master_service->description, master_service->host_name);
 				schedule_service_check(master_service, current_time, CHECK_OPTION_DEPENDENCY_CHECK);
-			}
-		}
-	}
-}
-/*****************************************************************************/
-static inline void host_propagate_dependency_checks(host * hst, time_t current_time)
-{
-	/* we do to help ensure that the dependency checks are accurate before it comes time to notify */
-	if (hst->current_attempt == (hst->max_attempts - 1) 
-		&& execute_host_checks == TRUE
-		&& enable_predictive_host_dependency_checks == TRUE) {
-
-		objectlist *list;
-		hostdependency *dep = NULL;
-		host *master_host = NULL;
-		
-		log_debug_info(DEBUGL_CHECKS, 1, "Propagating predictive dependency checks to hosts this one depends on...\n");
-
-		for(list = hst->notify_deps; list; list = list->next) {
-			dep = (hostdependency *)list->object_ptr;
-			if (dep->dependent_host_ptr == hst && dep->master_host_ptr != NULL) {
-
-				master_host = (host *)dep->master_host_ptr;
-
-				log_debug_info(DEBUGL_CHECKS, 1, "Check of host '%s' queued.\n", master_host->name);
-				schedule_host_check(master_host, current_time, CHECK_OPTION_NONE);
-			}
-		}
-
-		for(list = hst->exec_deps; list; list = list->next) {
-			dep = (hostdependency *)list->object_ptr;
-			if (dep->dependent_host_ptr == hst && dep->master_host_ptr != NULL) {
-
-				master_host = (host *)dep->master_host_ptr;
-
-				log_debug_info(DEBUGL_CHECKS, 1, "Check of host '%s' queued.\n", master_host->name);
-				schedule_host_check(master_host, current_time, CHECK_OPTION_NONE);
 			}
 		}
 	}
@@ -1206,6 +1207,8 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 	char * old_plugin_output       = NULL;
 
 	host * hst                     = NULL;
+
+	int notification_type          = NOTIFICATION_NORMAL;
 
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_async_service_check_result()\n");
 
@@ -1392,6 +1395,8 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			svc->current_attempt = 1;
 
 			handle_event = TRUE;
+
+			service_propagate_dependency_checks(svc, current_time);
 		}
 	}
 
@@ -1587,10 +1592,16 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 		handle_event = TRUE;
 	}
 
+	// Recovery notification was not sent
+	if(svc->notified_on != 0 && svc->current_state == STATE_OK && svc->state_type == HARD_STATE) {
+		notification_type = NOTIFICATION_RECOVERY;
+		send_notification = TRUE;
+	}
+
 	if (send_notification == TRUE) {
 
 		/* send notification */
-		if (service_notification(svc, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
+		if (service_notification(svc, notification_type, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
 
 			/* log state due to notification event when stalking_options N is set */
 			if (should_stalk_notifications(svc)) {
@@ -1598,12 +1609,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 			}
 		}
 	}
-
-	/* the service recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
-	if(svc->current_state == STATE_OK && svc->state_type == HARD_STATE && hard_state_change == TRUE) {
-		svc->current_notification_number = 0;
-		svc->notified_on = 0;
-		}
 
 	if (obsess_over_services == TRUE) {
 		obsessive_compulsive_service_check_processor(svc);
@@ -1630,7 +1635,6 @@ int handle_async_service_check_result(service *svc, check_result *cr)
 
 		/* Reset attempts */
 		if (hard_state_change == TRUE) {
-			svc->current_notification_number = 0;
 			svc->host_problem_at_last_check = FALSE;
 		}
 
@@ -2251,6 +2255,8 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 
 	char * old_plugin_output = NULL;
 
+	int notification_type    = NOTIFICATION_NORMAL;
+
 	log_debug_info(DEBUGL_FUNCTIONS, 0, "handle_async_host_check_result()\n");
 
 	if (is_valid_check_result_data(hst, cr) == FALSE) {
@@ -2478,10 +2484,16 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		hst->current_attempt = 1;
 	}
 
+	// Recovery notification was not sent
+	if(hst->notified_on != 0 && hst->current_state == HOST_UP && hst->state_type == HARD_STATE) {
+		notification_type = NOTIFICATION_RECOVERY;
+		send_notification = TRUE;
+	}
+
 	if (send_notification == TRUE) {
 
 		/* send notifications */
-		if (host_notification(hst, NOTIFICATION_NORMAL, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
+		if (host_notification(hst, notification_type, NULL, NULL, NOTIFICATION_OPTION_NONE) == OK) {
 
 			/* log state due to notification event when stalking_options N is set */
 			if (should_stalk_notifications(hst)) {
@@ -2490,12 +2502,6 @@ int handle_async_host_check_result(host *hst, check_result *cr)
 		}
 	}
 
-    /* the host recovered, so reset the current notification number and state flags (after the recovery notification has gone out) */
-    if(hst->current_state == HOST_UP && hst->state_type == HARD_STATE && hard_state_change == TRUE) {
-        hst->current_notification_number = 0;
-        hst->notified_on = 0;
-        }
-        
 	if (obsess_over_hosts == TRUE) {
 		obsessive_compulsive_host_check_processor(hst);
 	}

@@ -1659,8 +1659,8 @@ int pre_flight_object_check(int *w, int *e) {
 			sm->service_ptr = find_service(sm->host_name, sm->service_description);
 			if(sm->service_ptr == NULL) {
 				logit(NSLOG_VERIFICATION_ERROR, TRUE, "Error: Service '%s' on host '%s' is not a valid parent for service '%s' on host '%s'\n",
-					  sm->host_name, sm->service_description,
-					  temp_service->host_name, temp_service->description);
+					  sm->service_description, sm->host_name,
+					  temp_service->description, temp_service->host_name);
 				errors++;
 				}
 
@@ -1755,7 +1755,7 @@ int pre_flight_object_check(int *w, int *e) {
 			temp_host->notification_period_ptr = temp_timeperiod;
 			}
 
-		/* check all parent parent host */
+		/* check all parents of host */
 		for(temp_hostsmember = temp_host->parent_hosts; temp_hostsmember != NULL; temp_hostsmember = temp_hostsmember->next) {
 
 			if((temp_host2 = find_host(temp_hostsmember->host_name)) == NULL) {

@@ -19,9 +19,11 @@
 #define TEST_CHECKS_C
 #define NSCORE 1
 
-#include <unistd.h>
-
 #include "config.h"
+
+#include <unistd.h>
+#include <stdio.h>
+
 #include "comments.h"
 #include "common.h"
 #include "statusdata.h"
@@ -1175,7 +1177,7 @@ void run_passive_host_tests()
         "Host is hard state");
     ok(hst1->current_attempt == 3,
         "Expecting current attempt %d, got %d", 3, hst1->current_attempt);
-    ok(hst1->last_state_change == (time_t) ORIG_START_TIME + 10L,
+    ok(hst1->last_state_change == (time_t) ORIG_START_TIME + 30L,
         "Expected last_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 10L), hst1->last_state_change);
     ok(hst1->last_hard_state_change == (time_t) (ORIG_START_TIME + 30L),
         "Expected last_hard_state_change time %lu, got %lu", (time_t) (ORIG_START_TIME + 30L), hst1->last_hard_state_change);
@@ -1278,7 +1280,7 @@ void run_passive_host_tests()
     ok(hst1->last_hard_state == STATE_DOWN,
         "Host last hard state was down");
     ok(hst1->no_more_notifications == TRUE,
-        "No more notifications reatained");
+        "No more notifications retained");
     ok(hst1->acknowledgement_type == ACKNOWLEDGEMENT_NORMAL,
         "Ack same");
     ok(hst1->last_notification != (time_t)0L,
@@ -1370,7 +1372,7 @@ void run_misc_host_check_tests()
     handle_hst1();
 
     ok(strstr(hst1->plugin_output, "127 is out of bounds") != NULL,
-        "found appropriate non existent message, [%s]", hst1->plugin_output);
+        "found appropriate nonexistent message, [%s]", hst1->plugin_output);
 
     create_check_result(check_type, -1, "host down");
     

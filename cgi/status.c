@@ -238,7 +238,8 @@ int main(void) {
 				break;
 			}
 		}
-		strcpy(host_name, host_name + i);
+		if (i > 0)
+			memmove(host_name, host_name + i, strlen(host_name + i) + 1);
 
 		if(NULL != strstr(host_name, "*")) {
 			/* allocate for 3 extra chars, ^, $ and \0 */
@@ -2077,7 +2078,6 @@ void show_host_detail(void) {
 	int seconds;
 	int duration_error = FALSE;
 	int total_entries = 0;
-	int visible_entries = 0;
 	regex_t preg_hostname;
 //	int show_host = FALSE;
 
@@ -2291,9 +2291,6 @@ void show_host_detail(void) {
 		if( (limit_results == TRUE) && ( (total_entries < page_start) || (total_entries > (page_start + result_limit)) )  ) {
 			continue;
 			}
-
-		visible_entries++;
-
 
 		/* grab macros */
 		grab_host_macros_r(mac, temp_host);
@@ -3450,7 +3447,7 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup) {
 		printf("<tr class='status%s'>\n", status_bg_class);
 
 		if(temp_hoststatus->status == SD_HOST_DOWN)
-			host_status_class = "HOStdOWN";
+			host_status_class = "HOSTDOWN";
 		else if(temp_hoststatus->status == SD_HOST_UNREACHABLE)
 			host_status_class = "HOSTUNREACHABLE";
 		else
@@ -3803,8 +3800,8 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus, int odd,
 		}
 	else if(hststatus->status == SD_HOST_DOWN) {
 		strncpy(status, "DOWN", sizeof(status));
-		status_class = "HOStdOWN";
-		status_bg_class = "HOStdOWN";
+		status_class = "HOSTDOWN";
+		status_bg_class = "HOSTDOWN";
 		}
 	else if(hststatus->status == SD_HOST_UNREACHABLE) {
 		strncpy(status, "UNREACHABLE", sizeof(status));
@@ -4691,7 +4688,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup) {
 
 		/* get the status of the host */
 		if(temp_hoststatus->status == SD_HOST_DOWN)
-			host_status_class = "HOStdOWN";
+			host_status_class = "HOSTDOWN";
 		else if(temp_hoststatus->status == SD_HOST_UNREACHABLE)
 			host_status_class = "HOSTUNREACHABLE";
 		else

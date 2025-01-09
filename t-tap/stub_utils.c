@@ -1,3 +1,4 @@
+
 void get_next_valid_time(time_t pref_time, time_t *valid_time, timeperiod *tperiod) 
 { }
 
